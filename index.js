@@ -56,6 +56,7 @@ io.on('connection', (socket) => {
         if (data && data.id) {
             const { id, targetId } = data;
             console.log(`${id} signed in`);
+            socket.userId = id; // Store userId in the socket
             clients[id] = socket.id; // Add sender to clients
             console.log("Updated clients:", clients);
 
@@ -70,23 +71,26 @@ io.on('connection', (socket) => {
             }
         } else {
             console.log("Invalid data received during signIn:", data);
-            socket.emit('errorMessage', { error: "Invalid data received during signIn" });
         }
     });
+
     socket.on('sendMessage', (msg) => {
         console.log("Received message:", msg);
         const { senderId, targetId } = msg;
 
         if (clients[targetId]) {
-            // Update the sendByMe field to match the senderId
-            msg.sendByMe = senderId;
-
-            io.to(clients[targetId]).emit('message-receive', msg);
+            if (socket.userId === senderId) {
+                io.to(clients[targetId]).emit('message-receive', msg);
+            } else {
+                console.log("Unauthorized attempt to send message.");
+                socket.emit('errorMessage', { error: "Unauthorized attempt to send message." });
+            }
         } else {
             console.log(`User with ID ${targetId} not found.`);
             socket.emit('errorMessage', { error: `User with ID ${targetId} not found.` });
         }
     });
+
 
 
     socket.once('chat message', (msg) => {
