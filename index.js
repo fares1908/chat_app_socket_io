@@ -52,27 +52,31 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
     console.log(`${socket.id} connected`);
 
-    socket.on('signIn', (data) => {
-        if (data && data.id) {
-            const { id, targetId } = data;
-            console.log(`${id} signed in`);
-            socket.userId = id; // Attach userId to socket
-            clients[id] = socket.id; // Add sender to clients
-            console.log("Updated clients:", clients);
+   socket.on('signIn', (data) => {
+    if (data && data.id) {
+        const { id, targetId } = data;
+        socket.userId = id; // Set userId in the socket
 
-            if (targetId) {
-                if (clients[targetId]) {
-                    io.to(clients[targetId]).emit('signedIn', { userId: id });
-                    socket.emit('signedIn', { userId: targetId });
-                } else {
-                    console.log(`Target user with ID ${targetId} not found.`);
-                    socket.emit('errorMessage', { error: `Target user with ID ${targetId} not found.` });
-                }
+        console.log(`${id} signed in`);
+        console.log("socket.userId:", socket.userId);
+
+        clients[id] = socket.id; // Add sender to clients
+        console.log("Updated clients:", clients);
+
+        if (targetId) {
+            if (clients[targetId]) {
+                io.to(clients[targetId]).emit('signedIn', { userId: id });
+                socket.emit('signedIn', { userId: targetId });
+            } else {
+                console.log(`Target user with ID ${targetId} not found.`);
+                socket.emit('errorMessage', { error: `Target user with ID ${targetId} not found.` });
             }
-        } else {
-            console.log("Invalid data received during signIn:", data);
         }
-    });
+    } else {
+        console.log("Invalid data received during signIn:", data);
+    }
+});
+
 socket.on('sendMessage', (msg) => {
     console.log("Received message:", msg);
     const { senderId, targetId } = msg;
