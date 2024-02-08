@@ -70,20 +70,24 @@ io.on('connection', (socket) => {
             }
         } else {
             console.log("Invalid data received during signIn:", data);
+            socket.emit('errorMessage', { error: "Invalid data received during signIn" });
         }
     });
-
     socket.on('sendMessage', (msg) => {
-        console.log(msg);
+        console.log("Received message:", msg);
         const { senderId, targetId } = msg;
 
         if (clients[targetId]) {
+            // Update the sendByMe field to match the senderId
+            msg.sendByMe = senderId;
+
             io.to(clients[targetId]).emit('message-receive', msg);
         } else {
             console.log(`User with ID ${targetId} not found.`);
             socket.emit('errorMessage', { error: `User with ID ${targetId} not found.` });
         }
     });
+
 
     socket.once('chat message', (msg) => {
         console.log('message:', msg);
