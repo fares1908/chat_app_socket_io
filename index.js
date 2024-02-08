@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
         if (data && data.id) {
             const { id, targetId } = data;
             console.log(`${id} signed in`);
-            socket.userId = id; // Store userId in the socket
+            socket.userId = id; // Attach userId to socket
             clients[id] = socket.id; // Add sender to clients
             console.log("Updated clients:", clients);
 
@@ -73,7 +73,6 @@ io.on('connection', (socket) => {
             console.log("Invalid data received during signIn:", data);
         }
     });
-
     socket.on('sendMessage', (msg) => {
         console.log("Received message:", msg);
         const { senderId, targetId } = msg;
