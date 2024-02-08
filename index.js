@@ -78,18 +78,19 @@ io.on('connection', (socket) => {
         console.log("Received message:", msg);
         const { senderId, targetId } = msg;
 
-        if (clients[targetId]) {
-            if (socket.userId === senderId) {
+        if (socket.userId === senderId) {
+            if (clients[targetId]) {
                 io.to(clients[targetId]).emit('message-receive', msg);
             } else {
-                console.log("Unauthorized attempt to send message.");
-                socket.emit('errorMessage', { error: "Unauthorized attempt to send message." });
+                console.log(`Target user with ID ${targetId} not found.`);
+                socket.emit('errorMessage', { error: `Target user with ID ${targetId} not found.` });
             }
         } else {
-            console.log(`User with ID ${targetId} not found.`);
-            socket.emit('errorMessage', { error: `User with ID ${targetId} not found.` });
+            console.log("Unauthorized attempt to send message.");
+            socket.emit('errorMessage', { error: "Unauthorized attempt to send message." });
         }
     });
+
 
 
 
