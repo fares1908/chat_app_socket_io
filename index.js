@@ -45,40 +45,39 @@ const clients = {};
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: process.env.CLIENT_ORIGIN || "http://localhost:3000"
+        origin: process.env.CLIENT_ORIGIN || "https://chatapp-socket-ioo.onrender.com"
     }
 });
 
 io.on('connection', (socket) => {
     console.log(`${socket.id} connected`);
 
-    socket.on('connection', (msg) => {
-        console.log(msg);
-    });
-
-    socket.on("signIn", (data) => {
+    socket.on('signIn', (data) => {
         if (data && data.id) {
             const { id, targetId } = data;
             console.log(`${id} signed in`);
             clients[id] = socket.id; // Add sender to clients
-            if (targetId) {
-                clients[targetId] = socket.id; // Add target to clients if targetId is provided
-            }
             console.log("Updated clients:", clients);
+
+            if (targetId) {
+                if (clients[targetId]) {
+                    io.to(clients[targetId]).emit('signedIn', { userId: id });
+                    socket.emit('signedIn', { userId: targetId });
+                } else {
+                    console.log(`Target user with ID ${targetId} not found.`);
+                    socket.emit('errorMessage', { error: `Target user with ID ${targetId} not found.` });
+                }
+            }
         } else {
             console.log("Invalid data received during signIn:", data);
         }
     });
 
-    // Change 'chat message' to 'sendMessage'
     socket.on('sendMessage', (msg) => {
         console.log(msg);
-        let targetId = msg.targetId.toString();
-        console.log(`targetId type: ${typeof targetId}, value: ${targetId}`);
-        console.log(`clients keys: ${Object.keys(clients)}`);
+        const { senderId, targetId } = msg;
 
         if (clients[targetId]) {
-            // Change 'message-receive' to 'message-receive'
             io.to(clients[targetId]).emit('message-receive', msg);
         } else {
             console.log(`User with ID ${targetId} not found.`);
@@ -86,16 +85,15 @@ io.on('connection', (socket) => {
         }
     });
 
-
     socket.once('chat message', (msg) => {
         console.log('message:', msg);
         io.emit('send message to all users', msg);
-        io.to(socket.id).emit('res', `Hello ${msg.name}, welcome!`);
+        // io.to(socket.id).emit('res', `Hello ${msg.name}, welcome!`);
     });
 });
 
 const port = process.env.PORT || 3000;
 
 server.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running at https://chatapp-socket-ioo.onrender.com`);
 });
