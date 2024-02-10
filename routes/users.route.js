@@ -6,7 +6,7 @@ const appError = require('../utils/appError'); // Add this line to import appErr
 const diskStorage = multer.diskStorage({
     destination: function(req, file, cb) {
         console.log(file);
-        cb(null, './uploads');
+        cb(null, 'uploads');
     },
     filename: function(req, file, cb) {
         const ext = file.mimetype.split('/')[1];
