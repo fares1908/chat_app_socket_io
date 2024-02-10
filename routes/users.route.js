@@ -46,7 +46,7 @@ router.route('/login')
 
 router.route('/addimage').post(upload.single("img"), (req, res) => {
     try {
-        return res.join({ path: req.file.filename });
+        return res.json({ path: req.file.filename });
 
     } catch (e) {
         return res.json({ error: e });
