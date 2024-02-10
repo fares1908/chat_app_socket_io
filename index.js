@@ -15,7 +15,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // MongoDB connection
 const url = process.env.MONGO_URL;
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -87,16 +86,22 @@ function handleSignIn(socket, data) {
 
 function handleSendMessage(socket, msg) {
     console.log("Received message:", msg);
-    const { senderId, targetId } = msg;
+    const { senderId, targetId, message, imagePath, isImage } = msg;
 
     if (clients[targetId]) {
         msg.sendByMe = senderId;
+
+        if (isImage) {
+            msg.imagePath = imagePath;
+        }
+
         io.to(clients[targetId]).emit('message-receive', msg);
     } else {
         console.log(`User with ID ${targetId} not found.`);
         socket.emit('errorMessage', { error: `User with ID ${targetId} not found.` });
     }
 }
+
 
 const port = process.env.PORT || 3000;
 
